@@ -1,5 +1,7 @@
 from matplottikz.tikz_file_writer import tikz_writer
 from matplottikz.utils import empty_plot_dict, matplotlib_markers, TAB, TAB2, TAB3
+import matplotlib.pyplot as plt
+
 
 class matplottikz:
     def __init__(self):
@@ -65,7 +67,7 @@ class matplottikz:
         self.current_plot["height"] = height
         self.current_plot["scale"] = scale
 
-    def scatter(self, x, y, color=None, marker_size=3, label=None):
+    def scatter(self, x, y, marker=None, color=None, marker_size=3, label=None):
         if self.current_plot is None:
             raise ValueError("No figure is defined. Please define a figure first")
 
@@ -77,7 +79,7 @@ class matplottikz:
         self.current_plot["plots"][label]["y"] = y
         self.current_plot["plots"][label]["line_type"] = "scatter"
         self.current_plot["plots"][label]["color"] = color
-        self.current_plot["plots"][label]["marker"] = marker_o
+        self.current_plot["plots"][label]["marker"] = marker
         self.current_plot["plots"][label]["marker_size"] = marker_size
     
     def plot(self, x, y, marker=None, color=None, marker_size=3, label=None):
