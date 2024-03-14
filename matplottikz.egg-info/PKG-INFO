@@ -1,0 +1,6 @@
+Metadata-Version: 2.1
+Name: matplottikz
+Version: 0.0.1
+Summary: Generate tikz figures using python
+Author: Ryan Seah Meng Yong
+License-File: LICENSE

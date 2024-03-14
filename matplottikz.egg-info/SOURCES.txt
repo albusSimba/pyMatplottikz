@@ -1,0 +1,11 @@
+LICENSE
+README.md
+setup.py
+matplottikz/__init__.py
+matplottikz/plotter.py
+matplottikz/tikz_file_writer.py
+matplottikz/utils.py
+matplottikz.egg-info/PKG-INFO
+matplottikz.egg-info/SOURCES.txt
+matplottikz.egg-info/dependency_links.txt
+matplottikz.egg-info/top_level.txt
