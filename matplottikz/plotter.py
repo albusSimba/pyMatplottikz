@@ -8,7 +8,7 @@ class matplottikz:
         self.clear()
     
     def clear(self):
-        self.current_plot = None
+        self.idx = None
         self.plots = []
         self.figures_names = []
     
@@ -19,83 +19,86 @@ class matplottikz:
     def grid(self, show=True, style="dashed"):
         self.show_grid = show
         if show:
-            self.current_plot["grid"] = "both"
-            self.current_plot["grid_style"] = style
+            self.plots[self.idx]["grid"] = "both"
+            self.plots[self.idx]["grid_style"] = style
         else:
-            self.current_plot["grid"] = "false"
-            self.current_plot["grid_style"] = style
+            self.plots[self.idx]["grid"] = "false"
+            self.plots[self.idx]["grid_style"] = style
     
     def legend(self, name=None, columns=1, anchor="center", pos="north west", column_sep=2, font_size=7):
         if name is not None:
             print(f"NOTE:Legend will not appear in figure have to call separately to show up in document.")
-        self.current_plot["legend_name"] = name
-        self.current_plot["legend_columns"] = columns
-        self.current_plot["legend_pos"] = pos
-        self.current_plot["legend_style"]["anchor"] = anchor
-        self.current_plot["legend_style"]["column_sep"] = column_sep
-        self.current_plot["legend_style"]["font_size"] = font_size
+        self.plots[self.idx]["legend_name"] = name
+        self.plots[self.idx]["legend_columns"] = columns
+        self.plots[self.idx]["legend_pos"] = pos
+        self.plots[self.idx]["legend_style"]["anchor"] = anchor
+        self.plots[self.idx]["legend_style"]["column_sep"] = column_sep
+        self.plots[self.idx]["legend_style"]["font_size"] = font_size
     
     def axis(self, tick_label_size=7, label_size=9):
-        self.current_plot["tick_label_size"] = tick_label_size
-        self.current_plot["label_size"] = label_size
+        self.plots[self.idx]["tick_label_size"] = tick_label_size
+        self.plots[self.idx]["label_size"] = label_size
     
     def ymode(self, mode):
         assert mode in ["log", "linear"], "mode must be either 'log' or 'linear'"
-        self.current_plot["y_axis_mode"] = mode
+        self.plots[self.idx]["y_axis_mode"] = mode
 
     def xlabel(self, label, offset=0.8):
-        self.current_plot["x_label"] = label
-        self.current_plot["x_label_offset"] = offset
+        self.plots[self.idx]["x_label"] = label
+        self.plots[self.idx]["x_label_offset"] = offset
+    
+    def xlim(self, min, max):
+        self.plots[self.idx]["x_min"] = min
+        self.plots[self.idx]["x_max"] = max
+    
+    def ylim(self, min, max):
+        self.plots[self.idx]["y_min"] = min
+        self.plots[self.idx]["y_max"] = max
     
     def ylabel(self, label, offset=-0.75):
-        self.current_plot["y_label"] = label
-        self.current_plot["y_label_offset"] = offset
+        self.plots[self.idx]["y_label"] = label
+        self.plots[self.idx]["y_label_offset"] = offset
+    
+    def xticks(self, distance):
+        self.plots[self.idx]["x_ticks_distance"] = distance
+
+    def yticks(self, distance):
+        self.plots[self.idx]["y_ticks_distance"] = distance
     
     def figure(self, filename, width=0.9, height=0.65, scale=1):
         
         if filename in self.figures_names:
-            index = self.figures_names.index(filename)
-            self.current_plot = self.plot[index]
-
+            self.idx = self.figures_names.index(filename)
         else:
             self.figures_names.append(filename)
-            self.plots.append(empty_plot_dict.copy())
-            self.current_plot = self.plots[-1]
+            self.plots.append(empty_plot_dict())
+            self.idx = len(self.plots) - 1
 
-        self.current_plot["filename"] = filename
-        self.current_plot["width"] = width
-        self.current_plot["height"] = height
-        self.current_plot["scale"] = scale
+        self.plots[self.idx]["filename"] = filename
+        self.plots[self.idx]["width"] = width
+        self.plots[self.idx]["height"] = height
+        self.plots[self.idx]["scale"] = scale
 
     def scatter(self, x, y, marker=None, color=None, marker_size=3, label=None):
-        if self.current_plot is None:
-            raise ValueError("No figure is defined. Please define a figure first")
-
-        if label is None:
-            label = f"scatter_{len(self.current_plot['plots'])}"
-        
-        self.current_plot["plots"][label] = {}
-        self.current_plot["plots"][label]["x"] = x
-        self.current_plot["plots"][label]["y"] = y
-        self.current_plot["plots"][label]["line_type"] = "scatter"
-        self.current_plot["plots"][label]["color"] = color
-        self.current_plot["plots"][label]["marker"] = marker
-        self.current_plot["plots"][label]["marker_size"] = marker_size
+        self.plot(x, y, marker, color, marker_size, label, "only marks")
     
-    def plot(self, x, y, marker=None, color=None, marker_size=3, label=None):
-        if self.current_plot is None:
+    def line(self, x, y, marker=None, color=None, marker_size=3, label=None):
+        self.plot(x, y, marker, color, marker_size, label, "sharp plot")
+
+    def plot(self, x, y, marker=None, color=None, marker_size=3, label=None, line_type="smooth"):
+        if self.idx is None:
             raise ValueError("No figure is defined. Please define a figure first")
 
         if label is None:
             label = f"plot_{len(self.current_plot['plots'])}"
         
-        self.current_plot["plots"][label] = {}
-        self.current_plot["plots"][label]["x"] = x
-        self.current_plot["plots"][label]["y"] = y
-        self.current_plot["plots"][label]["line_type"] = "line"
-        self.current_plot["plots"][label]["color"] = color
-        self.current_plot["plots"][label]["marker"] = marker
-        self.current_plot["plots"][label]["marker_size"] = marker_size
+        self.plots[self.idx]["plots"][label] = {}
+        self.plots[self.idx]["plots"][label]["x"] = x
+        self.plots[self.idx]["plots"][label]["y"] = y
+        self.plots[self.idx]["plots"][label]["line_type"] = line_type
+        self.plots[self.idx]["plots"][label]["color"] = color
+        self.plots[self.idx]["plots"][label]["marker"] = marker
+        self.plots[self.idx]["plots"][label]["marker_size"] = marker_size
 
     def write_tikz(self, dir="", show_latex_cmd=True):
         for i, plot in enumerate(self.plots):
@@ -111,12 +114,24 @@ class matplottikz:
 
             writer.start_file()
             writer.write(TAB + r"\pgfplotsset{")
-            writer.write(TAB2 + r"label style = {font=\fontsize{" + str(self.current_plot["label_size"]) + "pt}{7.2}\selectfont},")
-            writer.write(TAB2 + r"tick label style = {font=\fontsize{" + str(self.current_plot["tick_label_size"]) + "pt}{7.2}\selectfont}")
+            writer.write(TAB2 + r"label style = {font=\fontsize{" + str(plot["label_size"]) + "pt}{7.2}\selectfont},")
+            writer.write(TAB2 + r"tick label style = {font=\fontsize{" + str(plot["tick_label_size"]) + "pt}{7.2}\selectfont}")
             writer.write(TAB + r"}")
             writer.write(TAB + r"\begin{axis}[")
             writer.write(TAB2 + r"scale = " + str(plot["scale"]) + ",")
             writer.write(TAB2 + r"ymode=" + plot["y_axis_mode"] + ",")
+            if plot["x_min"] is not None:
+                writer.write(TAB2 + r"xmin=" + str(plot["x_min"]) + ",")
+            if plot["x_max"] is not None:
+                writer.write(TAB2 + r"xmax=" + str(plot["x_max"]) + ",")
+            if plot["y_min"] is not None:
+                writer.write(TAB2 + r"ymin=" + str(plot["y_min"]) + ",")
+            if plot["y_max"] is not None:
+                writer.write(TAB2 + r"ymax=" + str(plot["y_max"]) + ",")
+            if plot["x_ticks_distance"] is not None:
+                writer.write(TAB2 + r"xtick distance=" + str(plot["x_ticks_distance"]) + ",")
+            if plot["y_ticks_distance"] is not None:
+                writer.write(TAB2 + r"ytick distance=" + str(plot["y_ticks_distance"]) + ",")
             if plot["x_label"] is not None:
                 writer.write(TAB2 + r"xlabel={" + plot["x_label"] + r"}, xlabel style={yshift=" + str(plot["x_label_offset"]) + r"em},")
             if plot["y_label"] is not None:
@@ -161,8 +176,7 @@ class matplottikz:
                     if color_index > color_palette_size:
                         color_index = 1
 
-                if line_style == "scatter":
-                    add_plot_params += r"only marks"
+                add_plot_params += plot["plots"][label]["line_type"]
                 
                 if add_plot_params != "":
                     add_plot_params += r", color=" + color
