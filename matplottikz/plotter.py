@@ -25,6 +25,9 @@ class matplottikz:
             self.plots[self.idx]["grid"] = "false"
             self.plots[self.idx]["grid_style"] = style
     
+    def xgrid_ticks(self, num):
+        self.plots[self.idx]["minor x tick num"] = num
+    
     def legend(self, name=None, columns=1, anchor="center", pos="north west", column_sep=2, font_size=7):
         if name is not None:
             print(f"NOTE:Legend will not appear in figure have to call separately to show up in document.")
@@ -138,6 +141,8 @@ class matplottikz:
                 writer.write(TAB2 + r"ylabel={" + plot["y_label"] + r"}, ylabel style={yshift=" + str(plot["y_label_offset"]) + r"em},")
             if plot["grid"] is not None:
                 writer.write(TAB2 + r"grid=" + plot["grid"] + r",")
+            if plot["minor x tick num"] is not None:
+                writer.write(TAB2 + r"minor x tick num=" + str(plot["minor x tick num"]) + r",")
             writer.write(TAB2 + r"ymajorgrids=true,")
             writer.write(TAB2 + r"xmajorgrids=true,")
             writer.write(TAB2 + r"grid style=" + plot["grid_style"] + r",")

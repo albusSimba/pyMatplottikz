@@ -37,6 +37,7 @@ def empty_plot_dict():
         "x_min": None,
         "y_max": None,
         "y_min": None,
+        "minor x tick num": None,
         "x_ticks_distance": None,
         "y_ticks_distance": None, 
         "y_label_offset": -0.75,
