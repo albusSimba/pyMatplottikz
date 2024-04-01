@@ -1,7 +1,6 @@
 from matplottikz.tikz_file_writer import tikz_writer
-from matplottikz.utils import empty_plot_dict, matplotlib_markers, TAB, TAB2, TAB3
+from matplottikz.utils import empty_plot_dict, matplotlib_markers, TAB, TAB2, TAB3, boxplot_process_data
 import matplotlib.pyplot as plt
-
 
 class matplottikz:
     def __init__(self):
@@ -50,6 +49,13 @@ class matplottikz:
         self.plots[self.idx]["x_label"] = label
         self.plots[self.idx]["x_label_offset"] = offset
     
+    def xlabel_style(self, align="center", font="small", rotation=0):
+        self.plots[self.idx]["xlabel_style"] = {
+            "label_align": align,
+            "font": font,
+            "rotation": rotation
+        }
+
     def xlim(self, min, max):
         self.plots[self.idx]["x_min"] = min
         self.plots[self.idx]["x_max"] = max
@@ -62,11 +68,36 @@ class matplottikz:
         self.plots[self.idx]["y_label"] = label
         self.plots[self.idx]["y_label_offset"] = offset
     
-    def xticks(self, distance):
-        self.plots[self.idx]["x_ticks_distance"] = distance
-
-    def yticks(self, distance):
-        self.plots[self.idx]["y_ticks_distance"] = distance
+    def ylabel_style(self, align="center", font="small", rotation=0):
+        self.plots[self.idx]["ylabel_style"] = {
+            "label_align": align,
+            "font": font,
+            "rotation": rotation
+        }
+        
+    def xticks(self, ticks=None, distance=None, labels=None):
+        if ticks is not None:
+            ticks = [str(tick) for tick in ticks]
+            ticks = "{" + ", ".join(ticks) + "}"
+            self.plots[self.idx]["x_ticks"] = ticks
+        if distance is not None:
+            self.plots[self.idx]["x_ticks_distance"] = distance
+        if labels is not None:
+            labels = [str(label) for label in labels]
+            labels = "{" + ", ".join(labels) + "}"
+            self.plots[self.idx]["x_ticks_labels"] = labels
+    
+    def yticks(self, ticks=None, distance=None, labels=None):
+        if ticks is not None:
+            ticks = [str(tick) for tick in ticks]
+            ticks = "{" + ", ".join(ticks) + "}"
+            self.plots[self.idx]["y_ticks"] = ticks
+        if distance is not None:
+            self.plots[self.idx]["y_ticks_distance"] = distance
+        if labels is not None:
+            labels = [str(label) for label in labels]
+            labels = "{" + ", ".join(labels) + "}"
+            self.plots[self.idx]["y_ticks_labels"] = labels
     
     def figure(self, filename, width=0.9, height=0.65, scale=1):
         
@@ -82,6 +113,31 @@ class matplottikz:
         self.plots[self.idx]["height"] = height
         self.plots[self.idx]["scale"] = scale
 
+    def boxplot(self, x, y, color="black", fill_color="white", fill_opacity=0.2, marker="*", marker_color="white", marker_size=1, label=None):
+        if self.idx is None:
+            raise ValueError("No figure is defined. Please define a figure first")
+
+        if self.plots[self.idx]["boxplot_draw_direction"] is None:
+            raise ValueError("Please define the boxplot direction first using boxplot_direction method")
+
+        if label is None:
+            label = str(x)
+
+        self.plots[self.idx]["plots"][label] = {
+            "x": x,
+            "y": y,
+            "line_type": "boxplot",
+            "color": color,
+            "fill_color": fill_color,
+            "fill_opacity": fill_opacity,
+            "marker": marker,
+            "marker_color": marker_color,
+            "marker_size": marker_size
+        }
+
+    def boxplot_direction(self, direction="y"):
+        self.plots[self.idx]["boxplot_draw_direction"] = direction
+        
     def scatter(self, x, y, marker=None, color=None, marker_size=3, label=None):
         self.plot(x, y, marker, color, marker_size, label, "only marks")
     
@@ -93,16 +149,17 @@ class matplottikz:
             raise ValueError("No figure is defined. Please define a figure first")
 
         if label is None:
-            label = f"plot_{len(self.current_plot['plots'])}"
+            label = f"plot_"+ str(len(self.plots[self.idx]["plots"]))
         
-        self.plots[self.idx]["plots"][label] = {}
-        self.plots[self.idx]["plots"][label]["x"] = x
-        self.plots[self.idx]["plots"][label]["y"] = y
-        self.plots[self.idx]["plots"][label]["line_type"] = line_type
-        self.plots[self.idx]["plots"][label]["color"] = color
-        self.plots[self.idx]["plots"][label]["marker"] = marker
-        self.plots[self.idx]["plots"][label]["marker_size"] = marker_size
-
+        self.plots[self.idx]["plots"][label] = {
+            "x": x,
+            "y": y,
+            "line_type": line_type,
+            "color": color,
+            "marker": marker,
+            "marker_size": marker_size
+        }
+        
     def write_tikz(self, dir="", show_latex_cmd=True):
         for i, plot in enumerate(self.plots):
             if len(plot["plots"]) == 0:
@@ -114,6 +171,7 @@ class matplottikz:
             filename = plot["filename"]
             writer = tikz_writer(dir + filename)
             writer.write_color_palette(color_palette_size)
+            writer.write(r"\usepgfplotslibrary{statistics}")
 
             writer.start_file()
             writer.write(TAB + r"\pgfplotsset{")
@@ -123,26 +181,54 @@ class matplottikz:
             writer.write(TAB + r"\begin{axis}[")
             writer.write(TAB2 + r"scale = " + str(plot["scale"]) + ",")
             writer.write(TAB2 + r"ymode=" + plot["y_axis_mode"] + ",")
+
+            if plot["boxplot_draw_direction"] is not None:
+                writer.write(TAB2 + r"boxplot/draw direction=" + plot["boxplot_draw_direction"] + r",")
+            if plot["minor x tick num"] is not None:
+                writer.write(TAB2 + r"minor x tick num=" + str(plot["minor x tick num"]) + r",")
+
             if plot["x_min"] is not None:
                 writer.write(TAB2 + r"xmin=" + str(plot["x_min"]) + ",")
             if plot["x_max"] is not None:
                 writer.write(TAB2 + r"xmax=" + str(plot["x_max"]) + ",")
+            if plot["x_ticks_distance"] is not None:
+                writer.write(TAB2 + r"xtick distance=" + str(plot["x_ticks_distance"]) + ",")
+            if plot["x_label"] is not None:
+                writer.write(TAB2 + r"xlabel={" + plot["x_label"] + r"}, xlabel style={yshift=" + str(plot["x_label_offset"]) + r"em},")
+            if plot["x_ticks"] is not None:
+                writer.write(TAB2 + r"xtick=" + plot["x_ticks"] + ",")
+            if plot["x_ticks_labels"] is not None:
+                writer.write(TAB2 + r"xticklabels=" + plot["x_ticks_labels"] + ",")
+            if plot["x_ticks_label_style"] is not None:
+                writer.write(TAB2 + r"xticklabel style={")
+                writer.write(TAB3 + r"align=" + plot["x_ticks_label_style"]["align"] + r",")
+                writer.write(TAB3 + r"font=\fontsize{" + str(plot["x_ticks_label_style"]["font_size"]) + "pt}{7.2}\selectfont,")
+                writer.write(TAB3 + r"rotate=" + str(plot["x_ticks_label_style"]["rotation"]) + r",")
+                writer.write(TAB2 + r"},")
+
             if plot["y_min"] is not None:
                 writer.write(TAB2 + r"ymin=" + str(plot["y_min"]) + ",")
             if plot["y_max"] is not None:
                 writer.write(TAB2 + r"ymax=" + str(plot["y_max"]) + ",")
-            if plot["x_ticks_distance"] is not None:
-                writer.write(TAB2 + r"xtick distance=" + str(plot["x_ticks_distance"]) + ",")
             if plot["y_ticks_distance"] is not None:
                 writer.write(TAB2 + r"ytick distance=" + str(plot["y_ticks_distance"]) + ",")
-            if plot["x_label"] is not None:
-                writer.write(TAB2 + r"xlabel={" + plot["x_label"] + r"}, xlabel style={yshift=" + str(plot["x_label_offset"]) + r"em},")
             if plot["y_label"] is not None:
                 writer.write(TAB2 + r"ylabel={" + plot["y_label"] + r"}, ylabel style={yshift=" + str(plot["y_label_offset"]) + r"em},")
+            if plot["y_ticks"] is not None:
+                writer.write(TAB2 + r"ytick=" + plot["y_ticks"] + ",")
+            if plot["y_ticks_labels"] is not None:
+                writer.write(TAB2 + r"yticklabels=" + plot["y_ticks_labels"] + ",")
+            if plot["y_ticks_labels_style"] is not None:
+                writer.write(TAB2 + r"yticklabel style={")
+                writer.write(TAB3 + r"align=" + plot["y_ticks_labels_style"]["align"] + r",")
+                writer.write(TAB3 + r"font=\fontsize{" + str(plot["y_ticks_labels_style"]["font_size"]) + "pt}{7.2}\selectfont,")
+                writer.write(TAB3 + r"rotate=" + str(plot["y_ticks_labels_style"]["rotation"]) + r",")
+                writer.write(TAB2 + r"},")
+
+
             if plot["grid"] is not None:
                 writer.write(TAB2 + r"grid=" + plot["grid"] + r",")
-            if plot["minor x tick num"] is not None:
-                writer.write(TAB2 + r"minor x tick num=" + str(plot["minor x tick num"]) + r",")
+            
             writer.write(TAB2 + r"ymajorgrids=true,")
             writer.write(TAB2 + r"xmajorgrids=true,")
             writer.write(TAB2 + r"grid style=" + plot["grid_style"] + r",")
@@ -181,27 +267,42 @@ class matplottikz:
                     if color_index > color_palette_size:
                         color_index = 1
 
-                add_plot_params += plot["plots"][label]["line_type"]
+                add_plot_params += line_style
                 
                 if add_plot_params != "":
                     add_plot_params += r", color=" + color
                 else:
                     add_plot_params += r"color=" + color
                 
-                if marker is not None:
-                    add_plot_params += r", thick, mark=" + marker
-                
-                add_plot_params += r", mark size=" + str(marker_size)
+                if line_style == "boxplot":
+                    add_plot_params += r", fill=" + str(data["fill_color"])
+                    add_plot_params += r", fill opacity=" + str(data["fill_opacity"])
+                    add_plot_params += r", mark=" + str(data["marker"])
+                    add_plot_params += r", mark options={scale=" + str(data["marker_size"]) + ", fill=" + str(data["marker_color"]) + "}"
+                else:
+                    if marker is not None:
+                        add_plot_params += r", thick, mark=" + marker
+                    
+                    add_plot_params += r", mark size=" + str(marker_size)
 
                 writer.write(TAB2 + r"% " + "-" * 25)
                 writer.write(TAB2 + r"% Plot for: " + label)
                 writer.write(TAB2 + r"% " + "-" * 25)
                 writer.write(TAB2 + r"\addplot[" + add_plot_params + r"]")
-                writer.write(TAB2 + r"table{")
-                for i in range(len(x)):
-                    writer.write(TAB3 + str(x[i]) + " " + str(y[i]))
+                if line_style == "boxplot":
+                    writer.write(TAB2 + r"table[row sep=\\,y index=0] {")
+                    writer.write(TAB3 + r"data\\")
+                    for i in range(len(y)):
+                       writer.write(TAB3 + str(y[i]) + r"\\")
+                else:
+                    writer.write(TAB2 + r"table{")
+                    for i in range(len(y)):
+                        writer.write(TAB3 + str(x[i]) + " " + str(y[i]))
+
                 writer.write(TAB2 + r"};")
-                writer.write(TAB2 + r"\addlegendentry{" + label + r"}")
+
+                if line_style != "boxplot":
+                    writer.write(TAB2 + r"\addlegendentry{" + label + r"}")
                 writer.write("")
 
             writer.write(TAB + r"\end{axis}")
@@ -212,7 +313,7 @@ class matplottikz:
                 print(f"")
                 print("To include the figure in your latex document, use the following commands:")
                 self.print_latex_figure_cmd(filename, plot["legend_name"])
-    
+
     def print_latex_figure_cmd(self, filename, legend_name):
         print(f"\\begin{{figure}}[!htb]")
         print(f"    \\centering")

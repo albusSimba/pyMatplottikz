@@ -1,4 +1,5 @@
 from matplottikz.utils import matplottikz_palette
+from matplottikz.utils import TAB, TAB2, TAB3, boxplot_process_data
 
 class tikz_writer:
     def __init__(self, filename):
@@ -29,6 +30,13 @@ class tikz_writer:
 
         self.write(r"\begin{document}")
         self.write(r"\begin{tikzpicture}")
+    
+    def boxplot_dependencies(self):
+        self.write(r"% " + "-" * 50)
+        self.write(r"% Boxplot dependencies")
+        self.write(r"% " + "-" * 50)
+        self.write(r"\usepgfplotslibrary{statistics}")
+        self.write(r"")
     
     def end_file(self):
         self.write(r"\end{tikzpicture}")
@@ -61,3 +69,15 @@ class tikz_writer:
         with open(self.filename, "w+") as f:
             f.write(self.text)
         self.text = ""
+    
+def print_latex_figure_cmd(self, filename, legend_name):
+    print(f"\\begin{{figure}}[!htb]")
+    print(f"    \\centering")
+    print(f"    % Uncomment one of the following")
+    print(f"    %\\includegraphics[width=0.9\\columnwidth]{{figures/{filename}}}")
+    print(f"    %\\includestandalone[width=0.9\\columnwidth]{{figures/{filename}}}")
+    if legend_name:
+        print(f"    \\hspace{{25pt}}\\ref{{{legend_name}}}")
+    print(f"    \\caption{{Write caption here.}}")
+    print(f"    \\label{{fig:{filename}}}")
+    print(f"\\end{{figure}}")

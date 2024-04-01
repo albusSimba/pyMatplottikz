@@ -193,8 +193,6 @@ class matplottikz:
                 writer.write(TAB2 + r"xmax=" + str(plot["x_max"]) + ",")
             if plot["x_ticks_distance"] is not None:
                 writer.write(TAB2 + r"xtick distance=" + str(plot["x_ticks_distance"]) + ",")
-            if plot["x_ticks_labels"] is not None:
-                writer.write(TAB2 + "")
             if plot["x_label"] is not None:
                 writer.write(TAB2 + r"xlabel={" + plot["x_label"] + r"}, xlabel style={yshift=" + str(plot["x_label_offset"]) + r"em},")
             if plot["x_ticks"] is not None:
