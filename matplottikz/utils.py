@@ -14,6 +14,9 @@ marker_star_flipped = "Mercedes star flipped"
 marker_diamond = "diamond"
 marker_asterisk = "asterisk"
 marker_star = "star"
+marker_x = "x"
+marker_plus = "+"
+marker_o_plus = "oplus"
 
 matplotlib_markers = {
     "square": "s",
