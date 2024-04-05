@@ -17,6 +17,9 @@ marker_star = "star"
 marker_x = "x"
 marker_plus = "+"
 marker_o_plus = "oplus"
+marker_minus = "−"
+marker_line = "|"
+marker_otimes = "otimes"
 
 matplotlib_markers = {
     "square": "s",
